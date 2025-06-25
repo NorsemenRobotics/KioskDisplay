@@ -95,15 +95,22 @@ gamma_table = [int((i / 255) ** 2.2 * 255 + 0.5) for i in range(256)] # poplulat
 def handle_crash(e):
     crash_time = time.monotonic()
     print(f"\n\n\n---- FATAL ERROR AT TIME {crash_time} ----------------")
-    print("Unhandled exception occurred:", e)
+    print("Unhandled exception occurred.")
 
-    # Attempt to print traceback information (including line number)
+    # Try printing and logging the traceback
     try:
+        # Print to console
         traceback.print_exception(e)
-    except Exception as te:
-        print("     Traceback unavailable:", te)
 
-    # Flash crash colors
+        # TODO Also write to file to SD using storage.mount() once SD reader is received.
+        #with open("/crash_log.txt", "a") as log:
+        #    log.write(f"\n\n---- FATAL ERROR AT {crash_time} ----\n")
+        #    log.write(f"Exception: {repr(e)}\n")
+        #    traceback.print_exception(e, file=log)
+    except Exception as te:
+        print("Traceback/logging unavailable:", te)
+
+    # Set crash colors
     for i in range(PIXEL_COUNT):
         if i % 2 == 0:
             pixels[i] = CRASH_RED
@@ -112,7 +119,7 @@ def handle_crash(e):
     pixels.show()
 
     while True:
-        pass  # Halt execution - do nothing forever.
+        pass  # Halt execution - Do nothing forever.
 
 def print_boot_stats():
     free = gc.mem_free()
@@ -397,8 +404,8 @@ try:                                                            # prepare to cat
         # scale x_inverted to float with range of 0.0-1.0
         x_final = x_inverted / 255
    
-        color = rgb_fade(MAX_RED, x_final)  # fade based on proximity
-        pixels.fill(gamma_correct(color))      # apply gamma correction to better present human-perceivable differences
+        color = rgb_fade(MAX_RED, x_final)                      # fade based on proximity
+        pixels.fill(gamma_correct(color))                       # apply gamma correction to better present human-perceivable differences
         pixels.show()
 
 except Exception as e:                                          # catch thrown exception
