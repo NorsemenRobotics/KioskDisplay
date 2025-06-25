@@ -14,11 +14,12 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# along with this program. If not, see <https://www.gnu.org/licenses/>. 
 
 
 import board
 import gc #garbage collector
+import traceback
 import time
 import busio
 import sys
@@ -27,7 +28,6 @@ import neopixel
 import adafruit_vl6180x
 
 # TODO remove DocStrings to save memory (""" comments at firstline of def)
-
 # CONSTANTS
 # ==========================================================================================================
 PIXEL_PIN = board.A1
@@ -39,6 +39,7 @@ PIXEL_ORDER = neopixel.GRB
 
 SENSOR_MAX_VAL = 180 # sensor appears only to start returning data at ~180 mm or less
 SENSOR_MIN_VAL = 1
+SENSOR_EXPONENT = 2 # how much to raise sensor value to enhance low-end resolution
 
 INTERACTION_TIMEOUT = 600.0
 REQUIRED_STABLE_READINGS = 25
@@ -83,7 +84,7 @@ i2c = busio.I2C(board.SCL, board.SDA)
 sensorX = adafruit_vl6180x.VL6180X(i2c)
 sensorY = adafruit_vl6180x.VL6180X(i2c,0x69)
 pixels = neopixel.NeoPixel(PIXEL_PIN, PIXEL_COUNT, bpp=PIXEL_BYTES, brightness=PIXEL_BRIGHTNESS, auto_write=PIXEL_AUTO_WRITE, pixel_order=PIXEL_ORDER)
-gamma_table = [int((i / 255) ** 2.2 * 255 + 0.5) for i in range(256)] # poplulate a pre-calculated table for gamma corretion to avoid run-time floating-point math
+gamma_table = [int((i / 255) ** 2.2 * 255 + 0.5) for i in range(256)] # poplulate a pre-calculated table for gamma correction to avoid run-time floating-point math
 
 
 
@@ -92,15 +93,26 @@ gamma_table = [int((i / 255) ** 2.2 * 255 + 0.5) for i in range(256)] # poplulat
 # =========================================================================================================
 
 def handle_crash(e):
+    crash_time = time.monotonic()
+    print(f"\n\n\n---- FATAL ERROR AT TIME {crash_time} ----------------")
     print("Unhandled exception occurred:", e)
+
+    # Attempt to print traceback information (including line number)
+    try:
+        traceback.print_exception(e)
+    except Exception as te:
+        print("     Traceback unavailable:", te)
+
+    # Flash crash colors
     for i in range(PIXEL_COUNT):
         if i % 2 == 0:
             pixels[i] = CRASH_RED
         else:
             pixels[i] = CRASH_YELLOW
     pixels.show()
+
     while True:
-        pass # do nothing forever.
+        pass  # Halt execution - do nothing forever.
 
 def print_boot_stats():
     free = gc.mem_free()
@@ -376,16 +388,16 @@ try:                                                            # prepare to cat
             grab_attention()
             boot_time = current_time
 
+        #scale and clamp sensor readings
+        x_scaled = scale_sensor_value(x, SENSOR_MIN_VAL, SENSOR_MAX_VAL)
+
         # invert sensor reading so closer = brighter
-        x_inverted = 255 - x 
+        x_inverted = 255 - x_scaled
 
-        # scale sensor value from int(0-255) to float(0-1.0)
-        x_scaled = scale_sensor_value(x_inverted, SENSOR_MIN_VAL, SENSOR_MAX_VAL) / 255
-
-        # exponentially scale sensor value to enhance low-end sensitivity
-        x_exp = x_scaled ** 3
-
-        color = rgb_fade(MAX_RED, x_exp)  # fade based on proximity
+        # scale x_inverted to float with range of 0.0-1.0
+        x_final = x_inverted / 255
+   
+        color = rgb_fade(MAX_RED, x_final)  # fade based on proximity
         pixels.fill(gamma_correct(color))      # apply gamma correction to better present human-perceivable differences
         pixels.show()
 

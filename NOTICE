@@ -1,0 +1,12 @@
+Project: KioskDisplay
+Maintained by: FRC Team 3688 - Norsemen Robotics
+Copyright (C) 2025 Jonathan Reid on behalf of FRC Team 3688
+
+This program is licensed under the GNU Affero General Public License v3.0 (AGPLv3).
+See the LICENSE file for full license text.
+
+The `/lib` directory contains third-party libraries, each of which is governed by its own license.
+All third-party code is unmodified unless otherwise noted. See individual file headers for details.
+
+Source Code: https://github.com/NorsemenRobotics/KioskDisplay
+Contact: norsemenrobotics@gmail.com

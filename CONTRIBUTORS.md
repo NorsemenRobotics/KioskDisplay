@@ -1,5 +1,5 @@
 # Contributors
 
-Jonathan Reid <norsemenrobotics@gmail.com>
-Michael Rokita <norsemenrobotics@gmail.com>
-Warren Dittrich <norsemenrobotics@gmail.com>
+- Jonathan Reid, Mentor <norsemenrobotics@gmail.com>
+- Michael, Student <norsemenrobotics@gmail.com>
+- Warren, Student <norsemenrobotics@gmail.com>
