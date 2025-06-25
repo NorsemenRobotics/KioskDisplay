@@ -16,28 +16,35 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>. 
 
-import board
-import gc
-import traceback
-import time
-from ulab import numpy as np
-import busio
-import sys
-import neopixel
+try:
+    import board
+    import gc
+    import traceback
+    import time
+    from ulab import numpy as np
+    import busio
+    import sys
+    import neopixel
 
-import adafruit_vl6180x
-from colors import *
-from effects import *
-from utils import *
+    import adafruit_vl6180x
+    from colors import *
+    from effects import *
+    from utils import *
+
+except Exception as e:
+    print(f"\n\n---- FATAL ERROR LOADING IMPORTS ---------------------")
+    print("Exception occurred.", e)
+    while True:
+        pass # Halt program. Do nothing forever.
+
 
 # CONSTANTS
 PIXEL_PIN = board.A1
-PIXEL_COUNT = 24
 PIXEL_BRIGHTNESS = 1.0
 PIXEL_BYTES = 3
 PIXEL_AUTO_WRITE = False
 PIXEL_ORDER = neopixel.GRB
-
+PIXEL_COUNT = 24
 HELIX_TURNS = 7.8
 HELIX_HEIGHT = PIXEL_COUNT
 SPARK_COUNT = 8
@@ -168,6 +175,11 @@ last_y = 0
 stable_count = 0
 last_sensor_poll_time = 0.0
 
+execution_min = float("inf")
+execution_max = 0.0
+execution_total = 0.0
+execution_count = 0
+
 gc.collect()
 print_boot_stats()
 gc.collect()
@@ -175,7 +187,7 @@ test_leds()
 time.sleep(0.8)
 flash_ok()
 time.sleep(0.4)
-print(f"---- INITIALIZATION COMPLETE --------------------\n")
+print("---- INITIALIZATION COMPLETE --------------------")
 
 # MAIN LOOP
 # =========================================================================================================
@@ -217,7 +229,19 @@ try:                                                            # prepare to cat
         #pixels.show()
 
         execution_time = time.monotonic() - current_time
-        print(f" | TTE: {execution_time}    ", end="")
 
+        # Track stats
+        execution_total += execution_time
+        execution_count += 1
+        if execution_time < execution_min:
+            execution_min = execution_time
+        if execution_time > execution_max:
+            execution_max = execution_time
+
+        # Every 100 iterations, print stats
+        if execution_count % 100 == 0:
+            avg = execution_total / execution_count
+            print(f" | ExecTime: min={execution_min:.4f}s | max={execution_max:.4f}s | avg={avg:.4f}s", end="")
+   
 except Exception as e:                                          # catch thrown exception
     handle_crash(e)                                             # handle and halt program
