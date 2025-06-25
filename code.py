@@ -94,8 +94,8 @@ gamma_table = [int((i / 255) ** 2.2 * 255 + 0.5) for i in range(256)] # poplulat
 
 def handle_crash(e):
     crash_time = time.monotonic()
-    print(f"\n\n\n---- FATAL ERROR AT TIME {crash_time} ----------------")
-    print("Unhandled exception occurred.")
+    print(f"\n\n---- FATAL ERROR AT TIME {crash_time} ----------------")
+    print("Exception occurred.")
 
     # Try printing and logging the traceback
     try:
@@ -129,7 +129,7 @@ def print_boot_stats():
     major = version[0]
     minor = version[1]
     micro = version[2]
-    print(f"\n\n\n\n\n\n\n\n\n\n---- BOOT START AT {boot_time} ----------------------")
+    print(f"\n\n\n\n\n\n\n\n\n\n---- BOOT: START AT {boot_time} ---------------------")
     print(f"     - {name} version ", end="")
     print(f"{major}.{minor}.{micro}")
 
@@ -308,8 +308,8 @@ def no_interaction(elapsed_seconds):
     last_y = y
     inputs_stable = stable_count >= REQUIRED_STABLE_READINGS
 
-    # TODO move print
-    print(f" | Timeout: {interaction_timeout_reached} | Stable: {inputs_stable} ({stable_count})", end="")
+    # TODO move/delete print
+    print(f" | Timeout: {interaction_timeout_reached} | Stable: {inputs_stable} ({stable_count})     ", end="")
     return interaction_timeout_reached and inputs_stable
 
 def grab_attention():
