@@ -44,7 +44,7 @@ PIXEL_BRIGHTNESS = 1.0
 PIXEL_BYTES = 3
 PIXEL_AUTO_WRITE = False
 PIXEL_ORDER = neopixel.GRB
-PIXEL_COUNT = 24
+PIXEL_COUNT = 250
 HELIX_TURNS = 7.8
 HELIX_HEIGHT = PIXEL_COUNT
 SPARK_COUNT = 8
@@ -54,7 +54,7 @@ SENSOR_MAX_VAL = 180
 SENSOR_MIN_VAL = 1
 SENSOR_EXPONENT = 2
 
-INTERACTION_TIMEOUT = 300.0
+INTERACTION_TIMEOUT = 15
 REQUIRED_STABLE_READINGS = 25
 SENSOR_POLL_INTERVAL = 0.1
 
@@ -106,6 +106,7 @@ def get_raw_sensor_y():
     return int(sensorY.range)
 
 def scale_sensor_value(raw_value, input_min, input_max):
+    """(raw value, min input, max input) return int (0-255)"""
     if input_max == input_min:
         return 0
     if raw_value < input_min:
@@ -128,13 +129,8 @@ def no_interaction(elapsed_seconds):
     return interaction_timeout_reached and inputs_stable
 
 def grab_attention():
-    for i in range(3):
-        pixels.fill(MAX_WHITE)
-        pixels.show()
-        time.sleep(0.1)
-        pixels.fill(BLACK)
-        pixels.show()
-        time.sleep(0.1)
+    lightning(pixels)
+   
 
 def test_leds():
     for color in [MAX_RED, MAX_GREEN, MAX_BLUE, MAX_WHITE]:
@@ -213,15 +209,16 @@ try:                                                            # prepare to cat
 
         #scale and clamp sensor readings
         x_scaled = scale_sensor_value(x, SENSOR_MIN_VAL, SENSOR_MAX_VAL)
+        y_scaled = scale_sensor_value(y, SENSOR_MIN_VAL, SENSOR_MAX_VAL)
 
-        # invert sensor reading so closer = brighter
-        x_inverted = 255 - x_scaled
+      
+        x_final = int(((255 - x_scaled) ** 2 / (255 ** 2)) * 255) # invert and exponentially scale. Rework to reduce run-time floating-point math.
+        y_final = y_scaled / 255 * 360
 
-        # scale x_inverted to float with range of 0.0-1.0
-        x_final = x_inverted / 255
+        color = hue_value_to_rgb(y_final, x_final)
    
-        color = rgb_fade(MAX_RED, x_final)                      # fade based on proximity
-        pixels.fill(gamma_correct(color))                       # apply gamma correction to better present human-perceivable differences
+        #color = rgb_fade(MAX_RED, x_final)                      # fade based on proximity
+        pixels.fill(color)                       
         pixels.show()
 
         #pixels_np = fire(pixels_np, fire_fade_by, PIXEL_COUNT, SPIRAL_DRIFT, SPARK_COUNT)
@@ -229,6 +226,8 @@ try:                                                            # prepare to cat
         #pixels.show()
 
         execution_time = time.monotonic() - current_time
+
+        
 
         # Track stats
         execution_total += execution_time

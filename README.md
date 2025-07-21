@@ -1,6 +1,7 @@
 # 3688 CircuitPython Kiosk Display
 
 This software is developed and maintained by **FRC Team 3688 - Norsemen Robotics**. 
+
 It is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.
 
 ## License
@@ -24,10 +25,6 @@ All third-party code is unmodified unless otherwise noted. See individual file h
 ## Contributors
 
 See [CONTRIBUTORS.md](CONTRIBUTORS.md)
-
-## How to Contribute
-
-Pull requests are welcome. By contributing, you agree to license your code under the AGPLv3.
 
 ## Contact
 
