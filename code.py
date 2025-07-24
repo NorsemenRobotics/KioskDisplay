@@ -25,6 +25,7 @@ try:
     import busio
     import sys
     import neopixel
+    import digitalio
 
     import adafruit_vl6180x
     from colors import *
@@ -65,6 +66,10 @@ sensorY = adafruit_vl6180x.VL6180X(i2c, 0x69)
 pixels = neopixel.NeoPixel(PIXEL_PIN, PIXEL_COUNT, bpp=PIXEL_BYTES,
                            brightness=PIXEL_BRIGHTNESS, auto_write=PIXEL_AUTO_WRITE,
                            pixel_order=PIXEL_ORDER)
+
+button1 = digitalio.DigitalInOut(board.D0)                      # define our pin
+button1.direction = digitalio.Direction.INPUT                   # define that we're using it as an INPUT, not an OUTPUT
+button1.pull = digitalio.Pull.DOWN                              # defalt the input to LOW (false)
 
 gamma_table = [int((i / 255) ** 2.2 * 255 + 0.5) for i in range(256)]
 pixels_np = np.array(pixels, dtype=np.int16)
@@ -131,7 +136,6 @@ def no_interaction(elapsed_seconds):
 def grab_attention():
     lightning(pixels)
    
-
 def test_leds():
     for color in [MAX_RED, MAX_GREEN, MAX_BLUE, MAX_WHITE]:
         pixels.fill(color)
@@ -161,6 +165,9 @@ def flash_not_ok():
         time.sleep(0.33)
     time.sleep(0.67)
 
+def go_blue():
+    pixels.fill(MAX_BLUE)
+
 
 # INITIALIZATION
 boot_time = time.monotonic()
@@ -188,7 +195,9 @@ print("---- INITIALIZATION COMPLETE --------------------")
 # MAIN LOOP
 # =========================================================================================================
 try:                                                            # prepare to catch execution exception
-    while True:
+    while True:                                
+        read_button_1 = button1.value                           # get the current status of the button
+
         # get current time
         current_time = time.monotonic()
 
@@ -217,8 +226,14 @@ try:                                                            # prepare to cat
 
         color = hue_value_to_rgb(y_final, x_final)
    
-        #color = rgb_fade(MAX_RED, x_final)                      # fade based on proximity
-        pixels.fill(color)                       
+        #color = rgb_fade(MAX_RED, x_final)                     # fade based on proximity
+       
+       
+        if read_button_1:                                       # condition to follow if the button is pushed (e.g. read_button = True)
+            pixels.fill(MAX_BLUE)
+        else:                                                   # otherwise follow this   
+            pixels.fill(color)  
+
         pixels.show()
 
         #pixels_np = fire(pixels_np, fire_fade_by, PIXEL_COUNT, SPIRAL_DRIFT, SPARK_COUNT)
@@ -241,6 +256,7 @@ try:                                                            # prepare to cat
         if execution_count % 100 == 0:
             avg = execution_total / execution_count
             print(f" | ExecTime: min={execution_min:.4f}s | max={execution_max:.4f}s | avg={avg:.4f}s", end="")
+       
    
 except Exception as e:                                          # catch thrown exception
     handle_crash(e)                                             # handle and halt program
